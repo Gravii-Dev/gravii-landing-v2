@@ -1,0 +1,244 @@
+.section {
+  position: relative;
+  display: flex;
+  min-height: 70svh;
+  width: 100%;
+  align-items: center;
+  overflow: hidden;
+  border-bottom: 0;
+  background: rgb(236 224 203);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  min-height: 70svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  padding-inline: clamp(0.8rem, 2.8vw, 2.2rem);
+  padding-block: clamp(1.2rem, 4.2vh, 3rem);
+}
+
+.text {
+  margin: 0;
+  font-family: var(--font-mystic-dream), var(--next-font-sans), sans-serif;
+  font-size: clamp(2.35rem, 11.4vw, 11.6rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.02;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgb(0 0 0 / 82%);
+  text-shadow: 0 1px 0 rgb(255 255 255 / 36%);
+}
+
+.char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(18%);
+  will-change: opacity, transform;
+}
+
+.space {
+  display: inline-block;
+  width: 0.34em;
+}
+
+.tail {
+  display: inline-block;
+  margin-left: 0.02em;
+  opacity: 0;
+  line-height: 1;
+  vertical-align: baseline;
+  position: relative;
+  top: 0.18em;
+}
+
+.blinkDot {
+  display: inline-block;
+}
+
+.blinkDot {
+  animation: blink-dot 0.8s steps(1, end) infinite;
+}
+
+.alertCard {
+  position: absolute;
+  right: clamp(2rem, 5vw, 4.5rem);
+  bottom: clamp(2.4rem, 7vh, 4.6rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  width: min(30rem, 42vw);
+  min-width: 22rem;
+  aspect-ratio: 1 / 1;
+  padding: 1.3rem 1.45rem 1.35rem;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 0.95rem;
+  background: rgb(12 12 12 / 88%);
+  box-shadow:
+    0 30px 72px rgb(0 0 0 / 30%),
+    0 1px 0 rgb(255 255 255 / 4%);
+  transform: rotate(10deg);
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+.alertNoise {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgb(255 255 255 / 3%) 2px,
+      rgb(255 255 255 / 3%) 4px
+    );
+  opacity: 0.9;
+  mix-blend-mode: screen;
+  animation: static-noise 2s linear infinite;
+}
+
+.alertHeader,
+.alertWarning,
+.alertWallet {
+  position: relative;
+  z-index: 1;
+}
+
+.alertHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.alertTitle {
+  font-family: var(--next-font-sans), sans-serif;
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: rgb(236 224 203 / 96%);
+}
+
+.alertClose {
+  font-size: 1.05rem;
+  color: rgb(255 255 255 / 32%);
+}
+
+.alertWarning {
+  border: 1px solid rgb(211 47 47 / 30%);
+  border-radius: 0.42rem;
+  background: rgb(211 47 47 / 12%);
+  padding: 0.9rem 1rem;
+}
+
+.alertWarningCopy {
+  font-family: var(--next-font-sans), sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.55;
+  color: rgb(239 83 80);
+}
+
+.alertWallet {
+  margin-top: auto;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 0.42rem;
+  background: rgb(255 255 255 / 4%);
+  padding: 0.9rem 1rem;
+}
+
+.alertLabel,
+.alertValue {
+  display: block;
+  font-family: var(--next-font-sans), sans-serif;
+  font-weight: 700;
+}
+
+.alertLabel {
+  margin-bottom: 0.18rem;
+  font-size: 0.86rem;
+  color: rgb(255 255 255 / 40%);
+}
+
+.alertValue {
+  font-size: 0.94rem;
+  line-height: 1.45;
+  color: rgb(255 255 255 / 64%);
+}
+
+@keyframes blink-dot {
+  0%,
+  44% {
+    opacity: 1;
+  }
+  45%,
+  100% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes static-noise {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blinkDot {
+    animation: none;
+    opacity: 1;
+  }
+
+  .char {
+    transform: none;
+  }
+
+  .alertNoise {
+    animation: none;
+  }
+}
+
+@media (width <= 900px) {
+  .alertCard {
+    width: min(23rem, calc(100% - 2rem));
+    min-width: 0;
+    right: 1rem;
+    bottom: 1rem;
+  }
+}
+
+@media (width <= 640px) {
+  .stage {
+    align-items: flex-start;
+    padding-top: 22vh;
+    padding-bottom: 14rem;
+  }
+
+  .alertCard {
+    left: 0;
+    right: 0;
+    bottom: 1.2rem;
+    width: min(22rem, calc(100% - 1.5rem));
+    margin-inline: auto;
+  }
+}

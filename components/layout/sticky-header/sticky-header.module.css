@@ -1,0 +1,356 @@
+.root {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 2rem;
+  padding-right: 2rem;
+  padding-left: 2rem;
+  font-family: var(--next-font-sans), sans-serif;
+  background: transparent;
+  transform: translateY(0);
+  transition: transform 300ms ease;
+}
+
+.isHidden {
+  transform: translateY(-100%);
+}
+
+.leftGroup {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logoLink {
+  cursor: pointer;
+  font-size: 1.125rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #000;
+  transition:
+    opacity 200ms ease,
+    color 180ms ease;
+}
+
+.pillLink {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  isolation: isolate;
+  cursor: pointer;
+  transition:
+    transform 200ms ease,
+    filter 200ms ease;
+}
+
+.pillBody {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  min-height: 3rem;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid rgb(255 255 255 / 50%);
+  border-radius: 2rem;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 14%) 0%, rgb(255 255 255 / 5%) 34%, rgb(255 255 255 / 2%) 68%, rgb(255 255 255 / 4%) 100%),
+    rgb(255 255 255 / 2.5%);
+  -webkit-backdrop-filter: blur(20px) saturate(118%) brightness(104%);
+  backdrop-filter: blur(20px) saturate(118%) brightness(104%);
+  box-shadow:
+    0 10px 24px rgb(0 0 0 / 5%),
+    0 1px 0 rgb(255 255 255 / 10%),
+    inset 0 1px 0 rgb(255 255 255 / 58%),
+    inset 0 -1px 0 rgb(255 255 255 / 10%),
+    inset 1px 0 0 rgb(255 255 255 / 20%),
+    inset -1px 0 0 rgb(255 255 255 / 12%),
+    inset 14px 14px 10px -22px rgb(255 255 255 / 30%),
+    inset -10px -10px 6px -16px rgb(185 185 185 / 24%);
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease,
+    filter 220ms ease;
+}
+
+.navLink .pillBody {
+  min-width: 0;
+}
+
+.actionLink .pillBody {
+  min-width: 8.75rem;
+}
+
+.pillOrbit {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.pillPulse {
+  position: absolute;
+  inset: -0.35rem;
+  border-radius: 999px;
+  opacity: 0;
+  background:
+    radial-gradient(circle at center, rgb(255 255 255 / 18%) 0%, rgb(255 255 255 / 6%) 24%, rgb(255 255 255 / 0%) 66%);
+  filter: blur(11px);
+  transform: scale(0.72);
+}
+
+.cursorOrbit {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 0;
+  height: 0;
+  animation: orbitSpin 18s linear infinite paused;
+}
+
+.cursorItem {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(var(--cursor-angle)) translateX(16px)
+    scale(0.2);
+  transform-origin: center;
+  transition:
+    transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease;
+  transition-delay: var(--cursor-delay);
+  will-change: transform, opacity;
+}
+
+.cursorGlyph {
+  width: 1rem;
+  height: 1rem;
+  color: rgb(255 255 255 / 92%);
+  filter:
+    drop-shadow(0 0 0.4rem rgb(255 255 255 / 28%))
+    drop-shadow(0 0 0.8rem rgb(255 255 255 / 12%));
+  transform: rotate(var(--cursor-rotation));
+}
+
+.pillSurface {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.pillSurface::before,
+.pillSurface::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.pillSurface {
+  background:
+    radial-gradient(42% 30% at 18% 8%, rgb(255 255 255 / 96%) 0%, rgb(255 255 255 / 20%) 18%, rgb(255 255 255 / 0%) 52%),
+    radial-gradient(18% 10% at 72% 18%, rgb(255 255 255 / 24%) 0%, rgb(255 255 255 / 0%) 76%),
+    linear-gradient(90deg, rgb(255 255 255 / 10%) 0%, rgb(255 255 255 / 0%) 12%, rgb(255 255 255 / 0%) 88%, rgb(255 255 255 / 6%) 100%);
+}
+
+.pillSurface::before {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 84%) 0%, rgb(255 255 255 / 32%) 4%, rgb(255 255 255 / 0%) 14%, rgb(255 255 255 / 3%) 100%);
+  mix-blend-mode: screen;
+}
+
+.pillSurface::after {
+  background:
+    radial-gradient(60% 60% at 50% 104%, rgb(0 0 0 / 3%) 0%, rgb(0 0 0 / 0%) 44%),
+    linear-gradient(180deg, rgb(255 255 255 / 14%) 0%, rgb(255 255 255 / 0%) 26%),
+    radial-gradient(16% 6% at 50% 16%, rgb(255 255 255 / 62%) 0%, rgb(255 255 255 / 0%) 100%);
+}
+
+.pillBody::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 22%) 0%, rgb(255 255 255 / 10%) 10%, rgb(255 255 255 / 0%) 24%),
+    radial-gradient(22% 8% at 50% 7%, rgb(255 255 255 / 26%) 0%, rgb(255 255 255 / 0%) 100%),
+    linear-gradient(105deg, rgb(255 255 255 / 10%) 0%, rgb(255 255 255 / 0%) 20%);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.pillBody::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(55% 42% at 50% 112%, rgb(255 255 255 / 4%) 0%, rgb(255 255 255 / 0%) 70%),
+    radial-gradient(18% 10% at 18% 8%, rgb(255 255 255 / 18%) 0%, rgb(255 255 255 / 0%) 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 44%),
+    inset 0 -1px 0 rgb(255 255 255 / 8%),
+    inset 1px 0 0 rgb(255 255 255 / 12%),
+    inset -1px 0 0 rgb(255 255 255 / 8%),
+    inset 14px 14px 9px -18px rgb(255 255 255 / 20%),
+    inset -12px -12px 6px -14px rgb(179 179 179 / 18%);
+  pointer-events: none;
+}
+
+.pillText {
+  position: relative;
+  z-index: 1;
+  font-family: var(--next-font-sans), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: rgb(0 0 0 / 86%);
+  text-shadow:
+    0 1px 0 rgb(255 255 255 / 34%),
+    0 0 10px rgb(255 255 255 / 12%);
+  opacity: 1;
+  filter: none;
+  transition:
+    color 180ms ease,
+    text-shadow 180ms ease;
+}
+
+.lightText .logoLink {
+  color: rgb(236 224 203 / 96%);
+}
+
+.lightText .pillText {
+  color: rgb(236 224 203 / 88%);
+  text-shadow:
+    0 1px 0 rgb(0 0 0 / 34%),
+    0 0 10px rgb(255 255 255 / 8%);
+}
+
+.logoLink:hover {
+  opacity: 0.6;
+}
+
+.pillLink[aria-disabled='true'] {
+  cursor: default;
+}
+
+.pillLink:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+}
+
+.pillLink:hover .pillBody,
+.pillLink:focus-visible .pillBody {
+  border-color: rgb(255 255 255 / 64%);
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 18%) 0%, rgb(255 255 255 / 7%) 32%, rgb(255 255 255 / 2%) 68%, rgb(255 255 255 / 5%) 100%),
+    rgb(255 255 255 / 3.5%);
+  box-shadow:
+    0 12px 28px rgb(0 0 0 / 6%),
+    0 1px 0 rgb(255 255 255 / 14%),
+    inset 0 1px 0 rgb(255 255 255 / 66%),
+    inset 0 -1px 0 rgb(255 255 255 / 10%),
+    inset 1px 0 0 rgb(255 255 255 / 24%),
+    inset -1px 0 0 rgb(255 255 255 / 12%),
+    inset 16px 16px 10px -22px rgb(255 255 255 / 34%),
+    inset -12px -12px 8px -18px rgb(204 204 204 / 20%);
+  filter: brightness(1.07);
+}
+
+.pillLink:hover .pillText,
+.pillLink:focus-visible .pillText {
+  color: rgb(0 0 0 / 92%);
+  text-shadow:
+    0 1px 0 rgb(255 255 255 / 38%),
+    0 0 14px rgb(255 255 255 / 16%);
+}
+
+.lightText .pillLink:hover .pillText,
+.lightText .pillLink:focus-visible .pillText {
+  color: rgb(236 224 203 / 98%);
+  text-shadow:
+    0 1px 0 rgb(0 0 0 / 38%),
+    0 0 14px rgb(255 255 255 / 12%);
+}
+
+.pillLink:hover .pillPulse,
+.pillLink:focus-visible .pillPulse {
+  animation: pillPulse 1.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.pillLink:hover .cursorOrbit,
+.pillLink:focus-visible .cursorOrbit {
+  animation-play-state: running;
+}
+
+.pillLink:hover .cursorItem,
+.pillLink:focus-visible .cursorItem {
+  opacity: 1;
+  transform: translate(-50%, -50%) rotate(var(--cursor-angle))
+    translateX(var(--cursor-radius)) scale(1);
+}
+
+@keyframes pillPulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.72);
+  }
+
+  22% {
+    opacity: 0.72;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+}
+
+@keyframes orbitSpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (--desktop) {
+  .root {
+    padding-top: 3.5rem;
+    padding-right: 5rem;
+    padding-left: 5rem;
+  }
+
+  .leftGroup {
+    gap: 8rem;
+  }
+
+  .nav {
+    gap: 0.9rem;
+  }
+}

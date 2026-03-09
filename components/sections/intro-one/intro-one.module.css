@@ -1,0 +1,100 @@
+.section {
+  position: relative;
+  display: flex;
+  min-height: 65svh;
+  width: 100%;
+  overflow: hidden;
+  border-bottom: 0;
+  background: rgb(236 224 203);
+}
+
+.stage {
+  width: 100%;
+  min-height: 65svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-inline: clamp(1rem, 4vw, 3.2rem);
+  padding-top: clamp(3.8rem, 12vh, 8.2rem);
+  padding-bottom: clamp(1rem, 4vh, 3rem);
+}
+
+.title {
+  margin: 0;
+  width: 100%;
+  font-family: var(--font-mystic-dream), var(--next-font-sans), sans-serif;
+  font-size: clamp(1.2rem, 5.8vw, 5.85rem);
+  font-weight: 400;
+  letter-spacing: 0.015em;
+  line-height: 1.06;
+  text-align: center;
+  color: rgb(0 0 0 / 84%);
+  text-shadow: 0 1px 0 rgb(255 255 255 / 36%);
+}
+
+.char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(16%);
+  will-change: opacity, transform;
+}
+
+.space {
+  display: inline-block;
+  width: 0.34em;
+}
+
+.cards {
+  width: 100%;
+  margin-top: clamp(2.2rem, 7vh, 6rem);
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: clamp(10rem, 18vh, 15rem);
+  align-content: center;
+  gap: clamp(1.5rem, 3vh, 2.5rem);
+}
+
+.card {
+  opacity: 0;
+  transform: translateY(20%);
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--next-font-sans), sans-serif;
+  font-size: clamp(2.1rem, 6vw, 5.9rem);
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  line-height: 0.94;
+  text-transform: uppercase;
+  color: rgb(0 0 0 / 82%);
+}
+
+.cardSubtitle {
+  margin: 0;
+  margin-top: clamp(0.2rem, 0.9vh, 0.6rem);
+  font-family: var(--font-mystic-dream), var(--next-font-sans), sans-serif;
+  font-size: clamp(1rem, 2.15vw, 1.85rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  text-transform: lowercase;
+  color: rgb(0 0 0 / 72%);
+}
+
+@media (width >= 900px) {
+  .cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    min-height: clamp(11rem, 18vh, 16rem);
+    gap: clamp(1.2rem, 2.6vw, 3.4rem);
+  }
+}

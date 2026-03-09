@@ -1,0 +1,11 @@
+.root {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+}
+
+.inner {
+  display: block;
+  width: 100%;
+  will-change: transform;
+}

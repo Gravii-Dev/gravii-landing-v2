@@ -1,0 +1,4 @@
+/* INDEX CSS FILE - Barrel file for importing all the css files */
+@import "./reset.css";
+@import "./root.css";
+@import "./global.css";

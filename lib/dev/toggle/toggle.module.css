@@ -1,0 +1,9 @@
+.button {
+  display: grid;
+  width: 5rem;
+  height: 5rem;
+  place-items: center;
+  border-radius: 8px;
+  font-size: 4rem;
+}
+
