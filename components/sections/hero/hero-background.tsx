@@ -1,33 +1,35 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import dynamic from 'next/dynamic'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import s from './hero.module.css'
 
 const HERO_BOOT_DELAY_MS = 240
-const HERO_ACTIVE_FRAME_INTERVAL_MS = 1000 / 60
-const HERO_IDLE_FRAME_INTERVAL_MS = 1000 / 60
-const HERO_INTERACTION_WINDOW_MS = 1600
 const DESKTOP_BREAKPOINT_PX = 1024
+
+const LazyHeroBackgroundWebGL = dynamic(
+  () =>
+    import('./hero-background-webgl').then((mod) => ({
+      default: mod.HeroBackgroundWebGL,
+    })),
+  {
+    ssr: false,
+  }
+)
 
 type HeroBackgroundProps = {
   onSettled?: () => void
 }
+
+type RenderMode = 'detecting' | 'webgpu' | 'webgl' | 'static'
 
 type NetworkInformation = {
   effectiveType?: 'slow-2g' | '2g' | '3g' | '4g'
   saveData?: boolean
 }
 
-function shouldEnableHeroWebGPU() {
-  if (!('gpu' in navigator)) {
-    return false
-  }
-
+function shouldEnableHero3D() {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    return false
-  }
-
-  if (!window.matchMedia(`(min-width: ${DESKTOP_BREAKPOINT_PX}px)`).matches) {
     return false
   }
 
@@ -51,13 +53,85 @@ function shouldEnableHeroWebGPU() {
   return true
 }
 
+function supportsWebGPU() {
+  return 'gpu' in navigator
+}
+
+function supportsWebGL() {
+  const canvas = document.createElement('canvas')
+
+  return Boolean(
+    canvas.getContext('webgl2', {
+      alpha: true,
+      antialias: true,
+      powerPreference: 'high-performance',
+    }) ||
+      canvas.getContext('webgl', {
+        alpha: true,
+        antialias: true,
+        powerPreference: 'high-performance',
+      })
+  )
+}
+
+function shouldPreferWebGPU() {
+  return window.matchMedia(`(min-width: ${DESKTOP_BREAKPOINT_PX}px)`).matches
+}
+
 export function HeroBackground({ onSettled }: HeroBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const hasSettledRef = useRef(false)
   const [isReady, setIsReady] = useState(false)
-  const [isSupported, setIsSupported] = useState(true)
+  const [renderMode, setRenderMode] = useState<RenderMode>('detecting')
+  const [canUseWebGL, setCanUseWebGL] = useState(false)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
 
   useEffect(() => {
+    if (hasSettledRef.current) {
+      return
+    }
+
+    const settle = () => {
+      if (hasSettledRef.current) {
+        return
+      }
+
+      hasSettledRef.current = true
+      onSettled?.()
+    }
+
+    if (!shouldEnableHero3D()) {
+      setRenderMode('static')
+      setIsReady(false)
+      setStatusMessage(null)
+      settle()
+      return
+    }
+
+    const webglSupported = supportsWebGL()
+    setCanUseWebGL(webglSupported)
+    setIsReady(false)
+    setStatusMessage(null)
+
+    if (supportsWebGPU() && (shouldPreferWebGPU() || !webglSupported)) {
+      setRenderMode('webgpu')
+      return
+    }
+
+    if (webglSupported) {
+      setRenderMode('webgl')
+      return
+    }
+
+    setRenderMode('static')
+    settle()
+  }, [onSettled])
+
+  useEffect(() => {
+    if (renderMode !== 'webgpu') {
+      return
+    }
+
     const canvas = canvasRef.current
     if (!canvas) {
       return
@@ -67,10 +141,7 @@ export function HeroBackground({ onSettled }: HeroBackgroundProps) {
     let sizeWaitRafId = 0
     let isDisposed = false
     let hasRenderError = false
-    let hasSettled = false
     let bootTimer = 0
-    let lastRenderedAt = 0
-    let lastInteractionAt = 0
     let isVisible = true
     let renderer: {
       resize: () => void
@@ -78,13 +149,30 @@ export function HeroBackground({ onSettled }: HeroBackgroundProps) {
       destroy: () => void
       updateCursorFromClientPoint: (x: number, y: number) => void
     } | null = null
+
     const settle = () => {
-      if (hasSettled) {
+      if (hasSettledRef.current) {
         return
       }
 
-      hasSettled = true
+      hasSettledRef.current = true
       onSettled?.()
+    }
+    const switchToFallback = (message: string | null) => {
+      if (isDisposed) {
+        return
+      }
+
+      setIsReady(false)
+      if (canUseWebGL) {
+        setStatusMessage(null)
+        setRenderMode('webgl')
+        return
+      }
+
+      setStatusMessage(message)
+      setRenderMode('static')
+      settle()
     }
     const visibilityObserver = new IntersectionObserver(
       ([entry]) => {
@@ -94,55 +182,38 @@ export function HeroBackground({ onSettled }: HeroBackgroundProps) {
         threshold: 0.05,
       }
     )
-    const markInteraction = () => {
-      lastInteractionAt = performance.now()
-      lastRenderedAt = 0
-    }
 
     const resizeObserver = new ResizeObserver(() => {
       renderer?.resize()
-      markInteraction()
     })
-
-    if (!shouldEnableHeroWebGPU()) {
-      setIsSupported(false)
-      setIsReady(false)
-      setStatusMessage(null)
-      settle()
-      return
-    }
 
     const onPointerMove = (event: PointerEvent) => {
       renderer?.updateCursorFromClientPoint(event.clientX, event.clientY)
-      markInteraction()
     }
+    const onPointerMoveEvent: EventListener = (event) => {
+      if (!(event instanceof PointerEvent)) {
+        return
+      }
+
+      onPointerMove(event)
+    }
+    const pointerMoveEventName = 'onpointerrawupdate' in window
+      ? 'pointerrawupdate'
+      : 'pointermove'
 
     const onPointerDown = (event: PointerEvent) => {
       renderer?.updateCursorFromClientPoint(event.clientX, event.clientY)
-      markInteraction()
     }
 
     const onWindowResize = () => {
       renderer?.resize()
-      markInteraction()
     }
 
     const animate = (time: number) => {
-      const frameInterval =
-        time - lastInteractionAt <= HERO_INTERACTION_WINDOW_MS
-          ? HERO_ACTIVE_FRAME_INTERVAL_MS
-          : HERO_IDLE_FRAME_INTERVAL_MS
-
-      if (
-        document.hidden ||
-        !isVisible ||
-        time - lastRenderedAt < frameInterval
-      ) {
+      if (document.hidden || !isVisible) {
         rafId = window.requestAnimationFrame(animate)
         return
       }
-
-      lastRenderedAt = time
 
       try {
         renderer?.render(time)
@@ -150,7 +221,7 @@ export function HeroBackground({ onSettled }: HeroBackgroundProps) {
         if (!hasRenderError) {
           hasRenderError = true
           console.error('[Hero WebGPU] render failed:', err)
-          setStatusMessage('WebGPU render failed')
+          switchToFallback('WebGPU render failed')
         }
       }
       rafId = window.requestAnimationFrame(animate)
@@ -166,31 +237,23 @@ export function HeroBackground({ onSettled }: HeroBackgroundProps) {
         }
 
         if (!created) {
-          setIsSupported(false)
-          setIsReady(false)
-          setStatusMessage('WebGPU unsupported')
-          settle()
+          switchToFallback('WebGPU unsupported')
           return
         }
 
         renderer = created
         visibilityObserver.observe(canvas)
         resizeObserver.observe(canvas)
-        window.addEventListener('pointermove', onPointerMove, { passive: true })
+        window.addEventListener(pointerMoveEventName, onPointerMoveEvent, { passive: true })
         window.addEventListener('pointerdown', onPointerDown, { passive: true })
         window.addEventListener('resize', onWindowResize, { passive: true })
-        setIsSupported(true)
         setIsReady(true)
         setStatusMessage(null)
-        markInteraction()
         settle()
         rafId = window.requestAnimationFrame(animate)
       } catch (err) {
         console.error('[Hero WebGPU] init failed:', err)
-        setIsSupported(false)
-        setIsReady(false)
-        setStatusMessage('WebGPU init failed')
-        settle()
+        switchToFallback('WebGPU init failed')
       }
     }
 
@@ -198,9 +261,9 @@ export function HeroBackground({ onSettled }: HeroBackgroundProps) {
       if (isDisposed) {
         return
       }
-      const w = canvas.clientWidth
-      const h = canvas.clientHeight
-      if (w >= 100 && h >= 100) {
+      const width = canvas.clientWidth
+      const height = canvas.clientHeight
+      if (width >= 100 && height >= 100) {
         bootTimer = window.setTimeout(() => {
           void init()
         }, HERO_BOOT_DELAY_MS)
@@ -215,22 +278,51 @@ export function HeroBackground({ onSettled }: HeroBackgroundProps) {
       window.cancelAnimationFrame(rafId)
       window.cancelAnimationFrame(sizeWaitRafId)
       window.clearTimeout(bootTimer)
-      window.removeEventListener('pointermove', onPointerMove)
+      window.removeEventListener(pointerMoveEventName, onPointerMoveEvent)
       window.removeEventListener('pointerdown', onPointerDown)
       window.removeEventListener('resize', onWindowResize)
       visibilityObserver.disconnect()
       resizeObserver.disconnect()
       renderer?.destroy()
     }
+  }, [canUseWebGL, onSettled, renderMode])
+
+  const handleWebGLReady = useCallback(() => {
+    if (hasSettledRef.current) {
+      return
+    }
+
+    hasSettledRef.current = true
+    setStatusMessage(null)
+    onSettled?.()
+  }, [onSettled])
+
+  const handleWebGLError = useCallback(() => {
+    setStatusMessage('WebGL fallback unavailable')
+    setRenderMode('static')
+    if (hasSettledRef.current) {
+      return
+    }
+
+    hasSettledRef.current = true
+    onSettled?.()
   }, [onSettled])
 
   return (
     <div className={s.backgroundWrap}>
-      <canvas
-        ref={canvasRef}
-        className={`${s.canvas} ${isReady && isSupported ? s.canvasVisible : ''}`}
-      />
-      {!isSupported ? <div className={s.fallback} aria-hidden="true" /> : null}
+      {renderMode === 'webgpu' ? (
+        <canvas
+          ref={canvasRef}
+          className={`${s.canvas} ${isReady ? s.canvasVisible : ''}`}
+        />
+      ) : null}
+      {renderMode === 'webgl' ? (
+        <LazyHeroBackgroundWebGL
+          onReady={handleWebGLReady}
+          onError={handleWebGLError}
+        />
+      ) : null}
+      {renderMode === 'static' ? <div className={s.fallback} aria-hidden="true" /> : null}
       {statusMessage ? <div className={s.status}>{statusMessage}</div> : null}
     </div>
   )

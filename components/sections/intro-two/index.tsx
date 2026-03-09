@@ -4,6 +4,10 @@ import { useEffect, useRef } from 'react'
 import s from './intro-two.module.css'
 
 const INTRO_TWO_COPY = 'OVER AND OVER'
+const TYPE_STEP_MS = 88
+const DELETE_STEP_MS = 52
+const HOLD_FULL_MS = 860
+const HOLD_EMPTY_MS = 220
 const INTRO_TWO_CHARS = (() => {
   const seen: Record<string, number> = {}
   let motionIndex = 0
@@ -57,43 +61,96 @@ export function IntroTwo() {
       return
     }
 
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches
+    const totalCharacters = charRefs.current.length
+    let timeoutId = 0
+    let isDisposed = false
+    let isActive = false
+    let visibleCount = 0
+    let phase: 'typing' | 'deleting' = 'typing'
     let frameId = 0
-    let lastVisibleCount = -1
 
-    charRefs.current.forEach((node) => {
-      setCharacterState(node, 0, 18)
-    })
-    tailNode.style.opacity = '0'
-    alertCardNode.classList.remove(ALERT_CARD_VISIBLE_CLASS)
+    const applyVisibleCount = (count: number) => {
+      visibleCount = count
+      charRefs.current.forEach((node, index) => {
+        const isVisible = index < count
+        setCharacterState(node, isVisible ? 1 : 0, isVisible ? 0 : 18)
+      })
 
-    const syncFromViewport = () => {
-      if (
-        !(
-          sectionNode &&
-          textLineNode &&
-          charRefs.current.length > 0 &&
-          alertCardNode
-        )
-      ) {
+      tailNode.style.opacity = isActive ? '1' : '0'
+    }
+
+    const clearAnimation = () => {
+      window.clearTimeout(timeoutId)
+    }
+
+    const resetLoop = () => {
+      phase = 'typing'
+      applyVisibleCount(0)
+      tailNode.style.opacity = '0'
+    }
+
+    const scheduleNextStep = (delay: number) => {
+      clearAnimation()
+      timeoutId = window.setTimeout(stepLoop, delay)
+    }
+
+    const stepLoop = () => {
+      if (isDisposed || !isActive) {
+        return
+      }
+
+      if (phase === 'typing') {
+        const nextCount = Math.min(totalCharacters, visibleCount + 1)
+        applyVisibleCount(nextCount)
+
+        if (nextCount >= totalCharacters) {
+          phase = 'deleting'
+          scheduleNextStep(HOLD_FULL_MS)
+          return
+        }
+
+        scheduleNextStep(TYPE_STEP_MS)
+        return
+      }
+
+      const nextCount = Math.max(0, visibleCount - 1)
+      applyVisibleCount(nextCount)
+
+      if (nextCount <= 0) {
+        phase = 'typing'
+        scheduleNextStep(HOLD_EMPTY_MS)
+        return
+      }
+
+      scheduleNextStep(DELETE_STEP_MS)
+    }
+
+    if (prefersReducedMotion) {
+      isActive = true
+      applyVisibleCount(totalCharacters)
+      tailNode.style.opacity = '1'
+      return () => {
+        clearAnimation()
+      }
+    }
+
+    resetLoop()
+
+    const syncCardFromViewport = () => {
+      frameId = 0
+
+      if (!(sectionNode && textLineNode)) {
         return
       }
 
       const textBounds = textLineNode.getBoundingClientRect()
       const viewportHeight = window.innerHeight
-
       const activationLine = viewportHeight * 1.03
 
-      // Start just before the entire line fully settles in view so the typing
-      // response feels a touch less delayed.
       if (textBounds.bottom > activationLine) {
-        if (lastVisibleCount !== 0) {
-          charRefs.current.forEach((node) => {
-            setCharacterState(node, 0, 18)
-          })
-          tailNode.style.opacity = '0'
-          lastVisibleCount = 0
-        }
-
         alertCardNode.classList.remove(ALERT_CARD_VISIBLE_CLASS)
         return
       }
@@ -104,49 +161,55 @@ export function IntroTwo() {
       )
       const typingProgress = clamp01(progress * 1.08)
       const resolvedProgress = progress >= 0.8 ? 1 : typingProgress
-      const visibleCount = Math.floor(
-        resolvedProgress * (charRefs.current.length + 1)
-      )
-
-      if (visibleCount !== lastVisibleCount) {
-        charRefs.current.forEach((node, index) => {
-          const isVisible = index < visibleCount
-
-          setCharacterState(node, isVisible ? 1 : 0, isVisible ? 0 : 18)
-        })
-
-        lastVisibleCount = visibleCount
-      }
-
-      tailNode.style.opacity = progress > 0 ? '1' : '0'
-
       const shouldShowCard = resolvedProgress >= 0.94
+
       alertCardNode.classList.toggle(ALERT_CARD_VISIBLE_CLASS, shouldShowCard)
     }
 
-    const scheduleSync = () => {
+    const scheduleCardSync = () => {
       if (frameId !== 0) {
         return
       }
 
-      frameId = window.requestAnimationFrame(() => {
-        frameId = 0
-        syncFromViewport()
-      })
+      frameId = window.requestAnimationFrame(syncCardFromViewport)
     }
 
-    const handleScroll = () => {
-      scheduleSync()
-    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const nextIsActive = entry?.isIntersecting ?? false
 
-    scheduleSync()
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    window.addEventListener('resize', handleScroll)
+        if (nextIsActive === isActive) {
+          return
+        }
+
+        isActive = nextIsActive
+
+        if (!isActive) {
+          clearAnimation()
+          resetLoop()
+          alertCardNode.classList.remove(ALERT_CARD_VISIBLE_CLASS)
+          return
+        }
+
+        scheduleNextStep(HOLD_EMPTY_MS)
+      },
+      {
+        threshold: 0.38,
+      }
+    )
+
+    observer.observe(sectionNode)
+    scheduleCardSync()
+    window.addEventListener('scroll', scheduleCardSync, { passive: true })
+    window.addEventListener('resize', scheduleCardSync)
 
     return () => {
+      isDisposed = true
+      clearAnimation()
       window.cancelAnimationFrame(frameId)
-      window.removeEventListener('scroll', handleScroll)
-      window.removeEventListener('resize', handleScroll)
+      window.removeEventListener('scroll', scheduleCardSync)
+      window.removeEventListener('resize', scheduleCardSync)
+      observer.disconnect()
     }
   }, [])
 
