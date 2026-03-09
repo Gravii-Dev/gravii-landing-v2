@@ -418,8 +418,8 @@
 }
 
 .withoutCard {
-  min-height: 10rem;
-  padding: 1.6rem 1.75rem;
+  min-height: 8.1rem;
+  padding: 1.15rem 1.45rem;
   display: flex;
   align-items: center;
 }
@@ -430,7 +430,10 @@
   font-size: clamp(1rem, 1.5vw, 1.15rem);
   font-weight: 700;
   line-height: 1.55;
-  color: var(--persona-text-muted);
+  color: rgb(236 224 203 / 42%);
+  opacity: 0.76;
+  filter: blur(0.75px);
+  text-shadow: 0 0 1px rgb(236 224 203 / 18%);
 }
 
 .isActive {

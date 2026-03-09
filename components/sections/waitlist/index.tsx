@@ -10,7 +10,7 @@ export function Waitlist() {
     >
       <div className={s.inner}>
         <MaskReveal className={s.titleReveal}>
-          <h2 className={s.title}>We search. You lifestyle. Live different.</h2>
+          <h2 className={s.title}>We search. Your lifestyle. Live different.</h2>
         </MaskReveal>
 
         <MaskReveal className={s.formReveal} delay={0.08}>
