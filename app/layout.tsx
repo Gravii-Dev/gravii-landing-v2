@@ -1,11 +1,9 @@
 import type { Metadata, Viewport } from 'next'
 
-import { type PropsWithChildren, Suspense } from 'react'
+import type { PropsWithChildren } from 'react'
 import { ReactTempus } from 'tempus/react'
 import { Link } from '@/components/ui/link'
-import { RealViewport } from '@/components/ui/real-viewport'
 import { OptionalFeatures } from '@/lib/features'
-import { TransformProvider } from '@/lib/hooks/use-transform'
 import { themes } from '@/lib/styles/colors'
 import { fontsVariable } from '@/lib/styles/fonts'
 import AppData from '@/package.json'
@@ -21,6 +19,7 @@ const APP_BASE_URL =
   (process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
     : 'http://localhost:3000')
+const ENABLE_OPTIONAL_RUNTIME = process.env.NODE_ENV === 'development'
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_BASE_URL),
@@ -78,31 +77,17 @@ export default async function Layout({ children }: PropsWithChildren) {
       lang="en"
       dir="ltr"
       className={fontsVariable}
+      data-theme="dark"
       // NOTE: This is due to the data-theme attribute being set which causes hydration errors
       suppressHydrationWarning
     >
       <body>
-        {/* Skip link for keyboard navigation accessibility */}
-        <Suspense fallback={null}>
-          <Link
-            href="#main-content"
-            className={s.skipLink}
-          >
-            Skip to main content
-          </Link>
-        </Suspense>
-        {/* Critical: CSS custom properties needed for layout */}
-        <RealViewport>
-          <TransformProvider>
-            {/* Main app content */}
-            {children}
-          </TransformProvider>
-        </RealViewport>
-        {/* Optional features - conditionally loaded based on configuration */}
-        <OptionalFeatures />
-
-        {/* RAF management - lightweight, but don't patch in draft mode to avoid conflicts */}
-        <ReactTempus patch={true} />
+        <Link href="#main-content" className={s.skipLink}>
+          Skip to main content
+        </Link>
+        {children}
+        {ENABLE_OPTIONAL_RUNTIME ? <OptionalFeatures /> : null}
+        {ENABLE_OPTIONAL_RUNTIME ? <ReactTempus patch={true} /> : null}
       </body>
     </html>
   )

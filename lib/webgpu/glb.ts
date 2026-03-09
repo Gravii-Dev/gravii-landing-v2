@@ -34,6 +34,11 @@ type GlTF = {
   }>
   textures?: Array<{
     source?: number
+    extensions?: {
+      EXT_texture_webp?: {
+        source: number
+      }
+    }
   }>
   images?: Array<{
     uri?: string
@@ -210,7 +215,7 @@ function extractBaseColorTexture(
   }
 
   const texture = gltf.textures?.[textureIndex]
-  const source = texture?.source
+  const source = texture?.source ?? texture?.extensions?.EXT_texture_webp?.source
   if (source === undefined) {
     return null
   }
@@ -245,7 +250,7 @@ function extractBaseColorTexture(
 }
 
 export async function loadGlbMesh(url: string): Promise<MeshData> {
-  const response = await fetch(url)
+  const response = await fetch(url, { cache: 'force-cache' })
   if (!response.ok) {
     throw new Error(`Failed to load model: ${response.status} ${response.statusText}`)
   }

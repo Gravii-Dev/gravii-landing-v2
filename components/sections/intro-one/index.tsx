@@ -1,6 +1,5 @@
 'use client'
 
-import gsap from 'gsap'
 import { useEffect, useRef } from 'react'
 import s from './intro-one.module.css'
 
@@ -32,6 +31,11 @@ function clamp01(value: number) {
   return Math.max(0, Math.min(1, value))
 }
 
+function setRevealState(node: HTMLElement, opacity: number, yPercent: number) {
+  node.style.opacity = `${opacity}`
+  node.style.transform = `translate3d(0, ${yPercent}%, 0)`
+}
+
 export function IntroOne() {
   const sectionRef = useRef<HTMLElement>(null)
   const titleRef = useRef<HTMLHeadingElement>(null)
@@ -57,8 +61,12 @@ export function IntroOne() {
     let frameId = 0
     let lastVisibleCount = -1
 
-    gsap.set(charRefs.current, { opacity: 0, yPercent: 16 })
-    gsap.set(cardNodes, { opacity: 0, yPercent: 20 })
+    charRefs.current.forEach((node) => {
+      setRevealState(node, 0, 16)
+    })
+    cardNodes.forEach((node) => {
+      setRevealState(node, 0, 20)
+    })
 
     const syncFromViewport = () => {
       if (
@@ -79,7 +87,7 @@ export function IntroOne() {
       if (titleBounds.top >= viewportHeight) {
         if (lastVisibleCount !== 0) {
           charRefs.current.forEach((node) => {
-            gsap.set(node, { opacity: 0, yPercent: 16 })
+            setRevealState(node, 0, 16)
           })
           lastVisibleCount = 0
         }
@@ -100,10 +108,7 @@ export function IntroOne() {
         charRefs.current.forEach((node, index) => {
           const isVisible = index < visibleCount
 
-          gsap.set(node, {
-            opacity: isVisible ? 1 : 0,
-            yPercent: isVisible ? 0 : 16,
-          })
+          setRevealState(node, isVisible ? 1 : 0, isVisible ? 0 : 16)
         })
 
         lastVisibleCount = visibleCount
@@ -117,10 +122,7 @@ export function IntroOne() {
       cardNodes.forEach((node, index) => {
         const local = clamp01((cardsProgress - index * 0.17) / 0.52)
 
-        gsap.set(node, {
-          opacity: local,
-          yPercent: (1 - local) * 20,
-        })
+        setRevealState(node, local, (1 - local) * 20)
       })
     }
 

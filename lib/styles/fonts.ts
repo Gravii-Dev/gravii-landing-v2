@@ -16,20 +16,13 @@ const mysticDream = localFont({
   style: 'normal',
 })
 
-const helvena = localFont({
-  src: '../../public/fonts/Helvena-Regular.woff2',
-  display: 'swap',
-  variable: '--font-helvena',
-  weight: '400',
-  style: 'normal',
-})
-
 const vank = localFont({
   src: '../../public/fonts/GC Vank.woff2',
   display: 'swap',
   variable: '--font-vank',
   weight: '400',
   style: 'normal',
+  preload: false,
 })
 
 const dripdropAltSolid = localFont({
@@ -38,9 +31,10 @@ const dripdropAltSolid = localFont({
   variable: '--font-dripdrop-alt-solid',
   weight: '400',
   style: 'normal',
+  preload: false,
 })
 
-const fonts = [wagerQuyaSans, mysticDream, helvena, vank, dripdropAltSolid]
+const fonts = [wagerQuyaSans, mysticDream, vank, dripdropAltSolid]
 const fontsVariable = fonts.map((font) => font.variable).join(' ')
 
 export { fontsVariable }

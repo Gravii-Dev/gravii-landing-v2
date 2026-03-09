@@ -1,9 +1,7 @@
 'use client'
 
 import clsx from 'clsx'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/all'
-import { type ReactNode, useEffect, useRef } from 'react'
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react'
 import s from './mask-reveal.module.css'
 
 type MaskRevealProps = {
@@ -15,10 +13,6 @@ type MaskRevealProps = {
   duration?: number
 }
 
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(ScrollTrigger)
-}
-
 export function MaskReveal({
   children,
   className,
@@ -28,44 +22,54 @@ export function MaskReveal({
   duration = 1.08,
 }: MaskRevealProps) {
   const rootRef = useRef<HTMLDivElement>(null)
-  const innerRef = useRef<HTMLDivElement>(null)
+  const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
-    if (!(rootRef.current && innerRef.current)) {
+    const root = rootRef.current
+    if (!root) {
       return
     }
 
-    const ctx = gsap.context(() => {
-      gsap.set(innerRef.current, {
-        yPercent: 112,
-        skewY: 7,
-        transformOrigin: '0% 100%',
-        willChange: 'transform',
-      })
-
-      gsap.to(innerRef.current, {
-        yPercent: 0,
-        skewY: 0,
-        delay,
-        duration,
-        ease: 'power4.out',
-        clearProps: 'willChange',
-        scrollTrigger: {
-          trigger: rootRef.current,
-          start,
-          toggleActions: 'play none none reverse',
-        },
-      })
-    }, rootRef)
-
-    return () => {
-      ctx.revert()
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setIsVisible(true)
+      return
     }
-  }, [delay, duration, start])
+
+    const match = /(\d+)%/.exec(start)
+    const revealPoint = match ? Number(match[1]) : 85
+    const rootMargin = `0px 0px -${Math.max(0, 100 - revealPoint)}% 0px`
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) {
+          return
+        }
+        setIsVisible(true)
+        observer.disconnect()
+      },
+      {
+        threshold: 0,
+        rootMargin,
+      }
+    )
+
+    observer.observe(root)
+
+    return () => observer.disconnect()
+  }, [start])
 
   return (
-    <div ref={rootRef} className={clsx(s.root, className)}>
-      <div ref={innerRef} className={clsx(s.inner, innerClassName)}>
+    <div
+      ref={rootRef}
+      className={clsx(s.root, className, isVisible && s.isVisible)}
+      style={
+        {
+          '--mask-reveal-delay': `${delay}s`,
+          '--mask-reveal-duration': `${duration}s`,
+        } as CSSProperties
+      }
+    >
+      <div className={clsx(s.inner, innerClassName)}>
         {children}
       </div>
     </div>

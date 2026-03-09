@@ -7,12 +7,25 @@
 
 import cn from 'clsx'
 import type { LenisOptions } from 'lenis'
+import dynamic from 'next/dynamic'
 import { Footer } from '@/components/layout/footer'
-import { Lenis } from '@/components/layout/lenis'
 import { Theme } from '@/components/layout/theme'
 import type { ThemeName } from '@/styles/config'
-import { Canvas } from '@/webgl/components/canvas'
 import s from './wrapper.module.css'
+
+const LazyLenis = dynamic(
+  () => import('@/components/layout/lenis').then((mod) => mod.Lenis),
+  {
+    ssr: false,
+  }
+)
+
+const LazyCanvas = dynamic(
+  () => import('@/webgl/components/canvas').then((mod) => mod.Canvas),
+  {
+    ssr: false,
+  }
+)
 
 /**
  * Props for the Wrapper component.
@@ -101,20 +114,22 @@ export function Wrapper({
   webgl = false,
   ...props
 }: WrapperProps) {
+  const main = (
+    <main
+      id="main-content"
+      className={cn(s.root, className)}
+      {...props}
+    >
+      {children}
+    </main>
+  )
+
   return (
     <Theme theme={theme} global>
-      <Canvas root={webgl}>
-        <main
-          id="main-content"
-          className={cn(s.root, className)}
-          {...props}
-        >
-          {children}
-        </main>
-      </Canvas>
+      {webgl ? <LazyCanvas root>{main}</LazyCanvas> : main}
       <Footer />
       {lenis && (
-        <Lenis
+        <LazyLenis
           root
           syncScrollTrigger
           options={typeof lenis === 'object' ? lenis : {}}

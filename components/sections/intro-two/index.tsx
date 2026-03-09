@@ -1,6 +1,5 @@
 'use client'
 
-import gsap from 'gsap'
 import { useEffect, useRef } from 'react'
 import s from './intro-two.module.css'
 
@@ -26,6 +25,13 @@ function clamp01(value: number) {
   return Math.max(0, Math.min(1, value))
 }
 
+function setCharacterState(node: HTMLElement, opacity: number, yPercent: number) {
+  node.style.opacity = `${opacity}`
+  node.style.transform = `translate3d(0, ${yPercent}%, 0)`
+}
+
+const ALERT_CARD_VISIBLE_CLASS = s.alertCardVisible ?? 'alertCardVisible'
+
 export function IntroTwo() {
   const sectionRef = useRef<HTMLElement>(null)
   const textLineRef = useRef<HTMLParagraphElement>(null)
@@ -34,13 +40,18 @@ export function IntroTwo() {
   const alertCardRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    const sectionNode = sectionRef.current
+    const textLineNode = textLineRef.current
+    const tailNode = tailRef.current
+    const alertCardNode = alertCardRef.current
+
     if (
       !(
-        sectionRef.current &&
-        textLineRef.current &&
+        sectionNode &&
+        textLineNode &&
         charRefs.current.length > 0 &&
-        tailRef.current &&
-        alertCardRef.current
+        tailNode &&
+        alertCardNode
       )
     ) {
       return
@@ -49,94 +60,50 @@ export function IntroTwo() {
     let frameId = 0
     let lastVisibleCount = -1
 
-    gsap.set(charRefs.current, { opacity: 0, yPercent: 18 })
-    gsap.set(tailRef.current, { opacity: 0 })
-    gsap.set(alertCardRef.current, {
-      autoAlpha: 0,
-      scaleX: 0.88,
-      scaleY: 1.16,
-      xPercent: 10,
-      yPercent: -146,
-      rotate: 22,
-      transformOrigin: '100% 100%',
+    charRefs.current.forEach((node) => {
+      setCharacterState(node, 0, 18)
     })
-
-    const cardTimeline = gsap
-      .timeline({ paused: true })
-      .to(alertCardRef.current, {
-        autoAlpha: 1,
-        scaleX: 1.14,
-        scaleY: 0.74,
-        xPercent: -3,
-        yPercent: 22,
-        rotate: 1,
-        duration: 0.32,
-        ease: 'power4.in',
-      })
-      .to(
-        alertCardRef.current,
-        {
-          scaleX: 0.97,
-          scaleY: 1.08,
-          xPercent: 1,
-          yPercent: -12,
-          rotate: 14,
-          duration: 0.18,
-          ease: 'power2.out',
-        },
-        '>'
-      )
-      .to(
-        alertCardRef.current,
-        {
-          scaleX: 1,
-          scaleY: 1,
-          xPercent: 0,
-          yPercent: 0,
-          rotate: 10,
-          duration: 0.34,
-          ease: 'expo.out',
-        },
-        '>'
-      )
+    tailNode.style.opacity = '0'
+    alertCardNode.classList.remove(ALERT_CARD_VISIBLE_CLASS)
 
     const syncFromViewport = () => {
       if (
         !(
-          sectionRef.current &&
-          textLineRef.current &&
+          sectionNode &&
+          textLineNode &&
           charRefs.current.length > 0 &&
-          alertCardRef.current
+          alertCardNode
         )
       ) {
         return
       }
 
-      const textBounds = textLineRef.current.getBoundingClientRect()
+      const textBounds = textLineNode.getBoundingClientRect()
       const viewportHeight = window.innerHeight
 
-      // Start only when the whole text line is visible in viewport.
-      if (textBounds.bottom > viewportHeight) {
+      const activationLine = viewportHeight * 1.03
+
+      // Start just before the entire line fully settles in view so the typing
+      // response feels a touch less delayed.
+      if (textBounds.bottom > activationLine) {
         if (lastVisibleCount !== 0) {
           charRefs.current.forEach((node) => {
-            gsap.set(node, { opacity: 0, yPercent: 18 })
+            setCharacterState(node, 0, 18)
           })
-          gsap.set(tailRef.current, { opacity: 0 })
+          tailNode.style.opacity = '0'
           lastVisibleCount = 0
         }
 
-        if (!cardTimeline.reversed() && cardTimeline.progress() > 0) {
-          cardTimeline.timeScale(1.12).reverse()
-        }
+        alertCardNode.classList.remove(ALERT_CARD_VISIBLE_CLASS)
         return
       }
 
-      const revealDistance = viewportHeight * 0.62
+      const revealDistance = viewportHeight * 0.5
       const progress = clamp01(
-        (viewportHeight - textBounds.bottom) / Math.max(1, revealDistance)
+        (activationLine - textBounds.bottom) / Math.max(1, revealDistance)
       )
-      const typingProgress = clamp01(progress * 0.9)
-      const resolvedProgress = progress >= 0.92 ? 1 : typingProgress
+      const typingProgress = clamp01(progress * 1.08)
+      const resolvedProgress = progress >= 0.8 ? 1 : typingProgress
       const visibleCount = Math.floor(
         resolvedProgress * (charRefs.current.length + 1)
       )
@@ -145,27 +112,16 @@ export function IntroTwo() {
         charRefs.current.forEach((node, index) => {
           const isVisible = index < visibleCount
 
-          gsap.set(node, {
-            opacity: isVisible ? 1 : 0,
-            yPercent: isVisible ? 0 : 18,
-          })
+          setCharacterState(node, isVisible ? 1 : 0, isVisible ? 0 : 18)
         })
 
         lastVisibleCount = visibleCount
       }
 
-      gsap.set(tailRef.current, {
-        opacity: progress > 0 ? 1 : 0,
-      })
+      tailNode.style.opacity = progress > 0 ? '1' : '0'
 
-      const shouldShowCard = resolvedProgress >= 1
-      if (shouldShowCard) {
-        if (cardTimeline.reversed() || cardTimeline.progress() < 1) {
-          cardTimeline.timeScale(1).play()
-        }
-      } else if (!cardTimeline.reversed() && cardTimeline.progress() > 0) {
-        cardTimeline.timeScale(1.12).reverse()
-      }
+      const shouldShowCard = resolvedProgress >= 0.94
+      alertCardNode.classList.toggle(ALERT_CARD_VISIBLE_CLASS, shouldShowCard)
     }
 
     const scheduleSync = () => {

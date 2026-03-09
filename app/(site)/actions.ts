@@ -2,7 +2,6 @@
 
 import { createHash } from 'node:crypto'
 import { headers } from 'next/headers'
-import type { FormState } from '@/components/ui/form/types'
 import { fetchWithTimeout } from '@/lib/utils/fetch'
 import { rateLimit, rateLimiters } from '@/lib/utils/rate-limit'
 import {
@@ -15,6 +14,13 @@ type WaitlistProvider = 'hubspot' | 'mailchimp'
 type WaitlistSubmission = {
   email: string
   provider: WaitlistProvider
+}
+
+type FormState<TData> = {
+  status: number
+  message?: string
+  data?: TData
+  fieldErrors?: Partial<Record<'email', string>>
 }
 
 export type WaitlistActionState = FormState<WaitlistSubmission>

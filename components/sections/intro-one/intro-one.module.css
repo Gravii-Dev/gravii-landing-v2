@@ -38,6 +38,9 @@
   opacity: 0;
   transform: translateY(16%);
   will-change: opacity, transform;
+  transition:
+    opacity 160ms linear,
+    transform 220ms var(--ease-out-cubic);
 }
 
 .space {
@@ -66,6 +69,9 @@
   align-items: center;
   justify-content: center;
   text-align: center;
+  transition:
+    opacity 180ms linear,
+    transform 240ms var(--ease-out-cubic);
 }
 
 .cardTitle {

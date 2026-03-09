@@ -17,7 +17,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
   }, [error])
 
   return (
-    <Wrapper theme="light" className={s.wrapperFont} webgl>
+    <Wrapper theme="light" className={s.wrapperFont} lenis={false}>
       <div className={s.container}>
         <h1 className={s.title}>Something went wrong</h1>
         <p className={s.description}>

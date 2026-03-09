@@ -1,26 +1,30 @@
-import type { CSSProperties } from 'react'
+'use client'
+
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Link } from '@/components/ui/link'
 import s from './hero.module.css'
 import { HeroBackground } from './hero-background'
 
+const SPLASH_EXIT_DURATION_MS = 520
+
 const CTA_ORBIT_CURSORS = [
-  ...Array.from({ length: 5 }, (_, index) => {
-    const angle = (360 / 5) * index
+  ...Array.from({ length: 4 }, (_, index) => {
+    const angle = (360 / 4) * index
     return {
       id: `outer-${angle}`,
       angle,
       radius: 76,
-      delay: index * 18,
+      delay: index * 22,
       rotation: angle + 22,
     }
   }),
-  ...Array.from({ length: 6 }, (_, index) => {
-    const angle = (360 / 6) * index + 10
+  ...Array.from({ length: 4 }, (_, index) => {
+    const angle = (360 / 4) * index + 14
     return {
       id: `inner-${angle}`,
       angle,
       radius: 98,
-      delay: 42 + index * 18,
+      delay: 46 + index * 22,
       rotation: angle + 22,
     }
   }),
@@ -45,9 +49,77 @@ function MousePointerIcon() {
 }
 
 export function Hero() {
+  const [splashPhase, setSplashPhase] = useState<'visible' | 'leaving' | 'hidden'>('visible')
+  const splashPhaseRef = useRef<'visible' | 'leaving' | 'hidden'>('visible')
+  const hasSettledRef = useRef(false)
+  const exitTimerRef = useRef<number>(0)
+
+  const clearSplashTimers = useCallback(() => {
+    window.clearTimeout(exitTimerRef.current)
+  }, [])
+
+  const beginSplashExit = useCallback(() => {
+    if (splashPhaseRef.current !== 'visible') {
+      return
+    }
+
+    splashPhaseRef.current = 'leaving'
+    setSplashPhase('leaving')
+    exitTimerRef.current = window.setTimeout(() => {
+      splashPhaseRef.current = 'hidden'
+      setSplashPhase('hidden')
+    }, SPLASH_EXIT_DURATION_MS)
+  }, [])
+
+  const handleHeroSettled = useCallback(() => {
+    if (hasSettledRef.current) {
+      return
+    }
+
+    hasSettledRef.current = true
+    beginSplashExit()
+  }, [beginSplashExit])
+
+  useEffect(() => {
+    return () => {
+      clearSplashTimers()
+    }
+  }, [clearSplashTimers])
+
+  useEffect(() => {
+    splashPhaseRef.current = splashPhase
+  }, [splashPhase])
+
+  useEffect(() => {
+    if (splashPhase === 'hidden') {
+      return
+    }
+
+    const htmlOverflow = document.documentElement.style.overflow
+    const bodyOverflow = document.body.style.overflow
+
+    document.documentElement.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.documentElement.style.overflow = htmlOverflow
+      document.body.style.overflow = bodyOverflow
+    }
+  }, [splashPhase])
+
   return (
     <section id="hero" className={s.section}>
-      <HeroBackground />
+      {splashPhase !== 'hidden' ? (
+        <div
+          className={`${s.splash} ${splashPhase === 'leaving' ? s.splashLeaving : ''}`}
+        >
+          <p className={s.splashTitle}>
+            <span className={s.splashLine}>Welcome to</span>
+            <span className={s.splashLine}>Gravii</span>
+          </p>
+        </div>
+      ) : null}
+      <HeroBackground onSettled={handleHeroSettled} />
       <div className={s.overlay}>
         <h1 className={s.label}>
           <span className={s.line}>Connect</span>

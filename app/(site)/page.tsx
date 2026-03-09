@@ -1,4 +1,4 @@
-import { Wrapper } from '@/components/layout/wrapper'
+import { SiteShell } from '@/components/layout/site-shell'
 import { StickyHeader } from '@/components/layout/sticky-header'
 import { Hero } from '@/components/sections/hero'
 import { IntroOne } from '@/components/sections/intro-one'
@@ -10,7 +10,7 @@ import { Waitlist } from '@/components/sections/waitlist'
 
 export default function Home() {
   return (
-    <Wrapper>
+    <SiteShell>
       <StickyHeader />
       <div>
         <Hero />
@@ -21,6 +21,6 @@ export default function Home() {
         <MarqueeNumbers />
         <Waitlist />
       </div>
-    </Wrapper>
+    </SiteShell>
   )
 }

@@ -21,7 +21,7 @@ export async function createWebGPUContext(
   const format = navigator.gpu.getPreferredCanvasFormat()
 
   const resize = () => {
-    const dpr = Math.max(1, window.devicePixelRatio || 1)
+    const dpr = Math.min(Math.max(1, window.devicePixelRatio || 1), 1.5)
     const width = Math.max(1, Math.floor(canvas.clientWidth * dpr))
     const height = Math.max(1, Math.floor(canvas.clientHeight * dpr))
 

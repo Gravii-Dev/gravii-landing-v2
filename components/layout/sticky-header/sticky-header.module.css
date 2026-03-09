@@ -354,3 +354,42 @@
     gap: 0.9rem;
   }
 }
+
+@media (width <= 640px) {
+  .root {
+    padding-top: 1rem;
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+
+  .leftGroup {
+    gap: 0.75rem;
+  }
+
+  .nav {
+    gap: 0.45rem;
+  }
+
+  .logoLink {
+    font-size: 0.9rem;
+  }
+
+  .pillBody {
+    min-height: 2.4rem;
+    padding: 0.55rem 0.95rem;
+  }
+
+  .actionLink .pillBody {
+    min-width: auto;
+    padding-inline: 0.9rem;
+  }
+
+  .pillText {
+    font-size: 0.75rem;
+  }
+
+  .pillPulse,
+  .cursorOrbit {
+    display: none;
+  }
+}

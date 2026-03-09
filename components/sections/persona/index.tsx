@@ -1,7 +1,5 @@
 'use client'
 
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/all'
 import { useEffect, useState } from 'react'
 import { useRef } from 'react'
 import s from './persona.module.css'
@@ -63,15 +61,37 @@ const withoutGravii = [
   'Browsing feeds hoping to find what fits',
 ] as const
 
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(ScrollTrigger)
-}
-
 export function Persona() {
   const [personaIndex, setPersonaIndex] = useState(2)
+  const [isPreviewActive, setIsPreviewActive] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
+    if (!sectionRef.current) {
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsPreviewActive(entry?.isIntersecting ?? false)
+      },
+      {
+        threshold: 0.1,
+      }
+    )
+
+    observer.observe(sectionRef.current)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isPreviewActive) {
+      return
+    }
+
     const intervalId = window.setInterval(() => {
       setPersonaIndex((current) => (current + 1) % personas.length)
     }, 3000)
@@ -79,71 +99,108 @@ export function Persona() {
     return () => {
       window.clearInterval(intervalId)
     }
-  }, [])
+  }, [isPreviewActive])
 
   useEffect(() => {
     if (!sectionRef.current) {
       return
     }
 
-    const ctx = gsap.context(() => {
-      const groups = gsap.utils.toArray<HTMLElement>('[data-reveal-group]')
+    let observer: IntersectionObserver | null = null
+    let isDisposed = false
+    let ctx: { revert: () => void } | null = null
 
-      groups.forEach((group) => {
-        const targets = gsap.utils.toArray<HTMLElement>('[data-reveal]', group)
-        if (targets.length === 0) {
+    const initAnimations = async () => {
+      const [{ default: gsap }, { ScrollTrigger }] = await Promise.all([
+        import('gsap'),
+        import('gsap/ScrollTrigger'),
+      ])
+
+      if (isDisposed || !sectionRef.current) {
+        return
+      }
+
+      gsap.registerPlugin(ScrollTrigger)
+
+      ctx = gsap.context(() => {
+        const groups = gsap.utils.toArray<HTMLElement>('[data-reveal-group]')
+
+        groups.forEach((group) => {
+          const targets = gsap.utils.toArray<HTMLElement>('[data-reveal]', group)
+          if (targets.length === 0) {
+            return
+          }
+
+          gsap.set(targets, {
+            yPercent: 110,
+            skewY: 7,
+            transformOrigin: '0% 100%',
+            willChange: 'transform',
+          })
+
+          gsap.timeline({
+            defaults: {
+              duration: 1.18,
+              ease: 'power4.out',
+            },
+            scrollTrigger: {
+              trigger: group,
+              start: 'top 80%',
+              toggleActions: 'play none none reverse',
+            },
+          }).to(targets, {
+            yPercent: 0,
+            skewY: 0,
+            stagger: 0.1,
+            clearProps: 'willChange',
+          })
+        })
+
+        const parallaxTargets = gsap.utils.toArray<HTMLElement>('[data-parallax]')
+
+        parallaxTargets.forEach((target, index) => {
+          const depth = 7 + (index % 3) * 2
+
+          gsap.fromTo(
+            target,
+            { yPercent: depth },
+            {
+              yPercent: -depth * 0.45,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: target,
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: true,
+              },
+            }
+          )
+        })
+      }, sectionRef)
+    }
+
+    observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) {
           return
         }
 
-        gsap.set(targets, {
-          yPercent: 110,
-          skewY: 7,
-          transformOrigin: '0% 100%',
-          willChange: 'transform',
-        })
+        observer?.disconnect()
+        observer = null
+        void initAnimations()
+      },
+      {
+        threshold: 0.01,
+        rootMargin: '120% 0px',
+      }
+    )
 
-        gsap.timeline({
-          defaults: {
-            duration: 1.18,
-            ease: 'power4.out',
-          },
-          scrollTrigger: {
-            trigger: group,
-            start: 'top 80%',
-            toggleActions: 'play none none reverse',
-          },
-        }).to(targets, {
-          yPercent: 0,
-          skewY: 0,
-          stagger: 0.1,
-          clearProps: 'willChange',
-        })
-      })
-
-      const parallaxTargets = gsap.utils.toArray<HTMLElement>('[data-parallax]')
-
-      parallaxTargets.forEach((target, index) => {
-        const depth = 7 + (index % 3) * 2
-
-        gsap.fromTo(
-          target,
-          { yPercent: depth },
-          {
-            yPercent: -depth * 0.45,
-            ease: 'none',
-            scrollTrigger: {
-              trigger: target,
-              start: 'top bottom',
-              end: 'bottom top',
-              scrub: true,
-            },
-          }
-        )
-      })
-    }, sectionRef)
+    observer.observe(sectionRef.current)
 
     return () => {
-      ctx.revert()
+      isDisposed = true
+      observer?.disconnect()
+      ctx?.revert()
     }
   }, [])
 

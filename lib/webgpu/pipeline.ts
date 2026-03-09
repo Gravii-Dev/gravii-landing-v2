@@ -2,7 +2,7 @@ import { createWebGPUContext } from './context'
 import { loadGlbMesh } from './glb'
 import type { HeroWebGPURenderer, MeshData } from './types'
 
-const INSTANCE_COUNT = 32
+const INSTANCE_COUNT = 18
 const INSTANCE_STRIDE_FLOATS = 8
 const CAMERA_UNIFORM_BYTES = 112
 
@@ -483,9 +483,9 @@ export async function createHeroWebGPURenderer(
   }
 
   const updateInstances = (timeSeconds: number, deltaSeconds: number) => {
-    const cursorWorldX = pointerX * 2.85
-    const cursorWorldY = pointerY * 1.9
-    const cursorInfluenceRadius = 2.35
+    const cursorWorldX = pointerX * 3.2
+    const cursorWorldY = pointerY * 2.2
+    const cursorInfluenceRadius = 2.65
     const clampedDelta = Math.min(0.05, Math.max(1 / 240, deltaSeconds))
 
     for (let i = 0; i < INSTANCE_COUNT; i += 1) {
@@ -500,7 +500,7 @@ export async function createHeroWebGPURenderer(
       const targetY = seed.y + floatY
       const targetZ = seed.z + driftZ
 
-      const spring = 5.1
+      const spring = 7.8
       state.vx += (targetX - state.x) * spring * clampedDelta
       state.vy += (targetY - state.y) * spring * clampedDelta
       state.vz += (targetZ - state.z) * spring * clampedDelta
@@ -517,11 +517,11 @@ export async function createHeroWebGPURenderer(
 
       // Farther instances appear to move less on screen, so compensate by depth.
       const depthCompensation = Math.max(1, Math.min(2.2, 0.95 + (-state.z - 0.8) * 0.32))
-      const impulse = 15.5 * falloff * depthCompensation
+      const impulse = 23.5 * falloff * depthCompensation
 
       state.vx += nx * impulse * clampedDelta
       state.vy += ny * impulse * clampedDelta
-      state.vz += falloff * 4.8 * clampedDelta * depthCompensation
+      state.vz += falloff * 6.4 * clampedDelta * depthCompensation
     }
 
     // Keep instances from collapsing into each other.
@@ -564,7 +564,7 @@ export async function createHeroWebGPURenderer(
       const seed = seeds[i]!
       const state = states[i]!
       const base = i * INSTANCE_STRIDE_FLOATS
-      const damping = Math.exp(-3.2 * clampedDelta)
+      const damping = Math.exp(-4.2 * clampedDelta)
       state.vx *= damping
       state.vy *= damping
       state.vz *= damping
