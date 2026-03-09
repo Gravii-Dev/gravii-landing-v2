@@ -6,14 +6,14 @@ import { Link } from '@/components/ui/link'
 import { OptionalFeatures } from '@/lib/features'
 import { themes } from '@/lib/styles/colors'
 import { fontsVariable } from '@/lib/styles/fonts'
-import AppData from '@/package.json'
 import '@/lib/styles/css/index.css'
 import s from './layout.module.css'
 
-const APP_NAME = AppData.name
-const APP_DEFAULT_TITLE = 'Project Name'
-const APP_TITLE_TEMPLATE = '%s | Project Name'
-const APP_DESCRIPTION = AppData.description
+const APP_NAME = 'Gravii'
+const APP_DEFAULT_TITLE = 'Gravii'
+const APP_TITLE_TEMPLATE = '%s | Gravii'
+const APP_DESCRIPTION =
+  'Connect once. Live differently. Gravii turns your onchain activity into one identity, one signal, and one door.'
 const APP_BASE_URL =
   process.env.NEXT_PUBLIC_BASE_URL ??
   (process.env.VERCEL_URL
@@ -29,11 +29,16 @@ export const metadata: Metadata = {
     template: APP_TITLE_TEMPLATE,
   },
   description: APP_DESCRIPTION,
+  keywords: [
+    'Gravii',
+    'web3 identity',
+    'onchain reputation',
+    'crypto profile',
+    'wallet identity',
+    'waitlist',
+  ],
   alternates: {
     canonical: '/',
-    languages: {
-      'en-US': '/en-US',
-    },
   },
   appleWebApp: {
     capable: true,
@@ -60,7 +65,16 @@ export const metadata: Metadata = {
     },
     description: APP_DESCRIPTION,
   },
-  authors: [],
+  robots: {
+    index: true,
+    follow: true,
+  },
+  authors: [
+    {
+      name: 'Gravii',
+      url: APP_BASE_URL,
+    },
+  ],
   other: {
     'fb:app_id': process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '',
   },
