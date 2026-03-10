@@ -59,6 +59,7 @@ body option,
 body select,
 body textarea {
   font: inherit;
+  letter-spacing: inherit;
 }
 
 /* Selection styling */

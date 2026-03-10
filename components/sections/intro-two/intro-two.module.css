@@ -36,9 +36,9 @@
 .text {
   margin: 0;
   font-family: var(--font-mystic-dream), var(--next-font-sans), sans-serif;
-  font-size: clamp(2.35rem, 11.4vw, 11.6rem);
+  font-size: min(clamp(2.82rem, 13.68vw, 13.92rem), calc((100vw - 1.6rem) / 6.9));
   font-weight: 500;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.015em;
   line-height: 1.02;
   text-align: center;
   text-transform: uppercase;
@@ -253,7 +253,7 @@
   }
 
   .text {
-    font-size: clamp(2.15rem, 10.2vw, 9.4rem);
+    font-size: min(clamp(2.58rem, 12.24vw, 11.28rem), calc((100vw - 1.6rem) / 6.9));
   }
 
   .alertCard {
@@ -276,7 +276,7 @@
 
   .text {
     max-width: none;
-    font-size: clamp(1.95rem, 9.5vw, 3.2rem);
+    font-size: min(clamp(2.34rem, 11.4vw, 3.84rem), calc((100vw - 1.2rem) / 6.65));
     line-height: 0.98;
     white-space: nowrap;
   }

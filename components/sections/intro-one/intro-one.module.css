@@ -24,11 +24,12 @@
   margin: 0;
   width: 100%;
   font-family: var(--font-mystic-dream), var(--next-font-sans), sans-serif;
-  font-size: clamp(1.2rem, 5.8vw, 5.85rem);
+  font-size: min(clamp(1.45rem, 6.95vw, 7.1rem), calc((100vw - 2rem) / 6.1));
   font-weight: 500;
   letter-spacing: 0.015em;
   line-height: 1.06;
   text-align: center;
+  white-space: nowrap;
   color: rgb(0 0 0 / 84%);
   text-shadow: 0 1px 0 rgb(255 255 255 / 36%);
 }
