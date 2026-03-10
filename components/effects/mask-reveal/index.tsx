@@ -1,7 +1,7 @@
 'use client'
 
 import clsx from 'clsx'
-import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react'
+import { type CSSProperties, type ReactNode, useEffect, useRef } from 'react'
 import s from './mask-reveal.module.css'
 
 type MaskRevealProps = {
@@ -11,6 +11,7 @@ type MaskRevealProps = {
   start?: string
   delay?: number
   duration?: number
+  completeAtPageEnd?: boolean
 }
 
 export function MaskReveal({
@@ -20,48 +21,88 @@ export function MaskReveal({
   start = 'top 85%',
   delay = 0,
   duration = 1.08,
+  completeAtPageEnd = false,
 }: MaskRevealProps) {
   const rootRef = useRef<HTMLDivElement>(null)
-  const [isVisible, setIsVisible] = useState(false)
+  const innerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const root = rootRef.current
-    if (!root) {
+    const inner = innerRef.current
+    if (!(root && inner)) {
       return
     }
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setIsVisible(true)
+      inner.style.opacity = '1'
+      inner.style.transform = 'translate3d(0, 0%, 0)'
       return
     }
 
-    const match = /(\d+)%/.exec(start)
-    const revealPoint = match ? Number(match[1]) : 85
-    const rootMargin = `0px 0px -${Math.max(0, 100 - revealPoint)}% 0px`
+    let frameId = 0
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry?.isIntersecting) {
-          return
-        }
-        setIsVisible(true)
-        observer.disconnect()
-      },
-      {
-        threshold: 0,
-        rootMargin,
+    const clamp01 = (value: number) => Math.max(0, Math.min(1, value))
+
+    const setRevealState = (opacity: number, yPercent: number) => {
+      inner.style.opacity = `${opacity}`
+      inner.style.transform = `translate3d(0, ${yPercent}%, 0)`
+    }
+
+    setRevealState(0, 16)
+
+    const syncFromViewport = () => {
+      const bounds = root.getBoundingClientRect()
+      const viewportHeight = window.innerHeight
+      const documentHeight = document.documentElement.scrollHeight
+      const viewportBottom = window.scrollY + viewportHeight
+
+      if (completeAtPageEnd && viewportBottom >= documentHeight - 2) {
+        setRevealState(1, 0)
+        return
       }
-    )
 
-    observer.observe(root)
+      if (bounds.top >= viewportHeight) {
+        setRevealState(0, 16)
+        return
+      }
 
-    return () => observer.disconnect()
-  }, [start])
+      const match = /(\d+)%/.exec(start)
+      const revealPoint = match ? Number(match[1]) : 85
+      const revealDistance = viewportHeight * Math.max(0.2, revealPoint / 100)
+      const progress = clamp01(
+        (viewportHeight - bounds.top) / Math.max(1, revealDistance)
+      )
+      const typingProgress = clamp01(progress * 0.92)
+      const resolvedProgress = progress >= 0.94 ? 1 : typingProgress
+
+      setRevealState(resolvedProgress, (1 - resolvedProgress) * 16)
+    }
+
+    const scheduleSync = () => {
+      if (frameId !== 0) {
+        return
+      }
+      frameId = window.requestAnimationFrame(() => {
+        frameId = 0
+        syncFromViewport()
+      })
+    }
+
+    scheduleSync()
+    window.addEventListener('scroll', scheduleSync, { passive: true })
+    window.addEventListener('resize', scheduleSync)
+
+    return () => {
+      window.cancelAnimationFrame(frameId)
+      window.removeEventListener('scroll', scheduleSync)
+      window.removeEventListener('resize', scheduleSync)
+    }
+  }, [completeAtPageEnd, start])
 
   return (
     <div
       ref={rootRef}
-      className={clsx(s.root, className, isVisible && s.isVisible)}
+      className={clsx(s.root, className)}
       style={
         {
           '--mask-reveal-delay': `${delay}s`,
@@ -69,7 +110,7 @@ export function MaskReveal({
         } as CSSProperties
       }
     >
-      <div className={clsx(s.inner, innerClassName)}>
+      <div ref={innerRef} className={clsx(s.inner, innerClassName)}>
         {children}
       </div>
     </div>

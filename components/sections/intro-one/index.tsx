@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { ScrubTextReveal } from '@/components/effects/scrub-text-reveal'
 import s from './intro-one.module.css'
 
 const INTRO_ONE_TITLE = 'Tired of starting from zero?'
@@ -64,9 +65,9 @@ export function IntroOne() {
     charRefs.current.forEach((node) => {
       setRevealState(node, 0, 16)
     })
-    cardNodes.forEach((node) => {
-      setRevealState(node, 0, 20)
-    })
+      cardNodes.forEach((node) => {
+        setRevealState(node, 0, 0)
+      })
 
     const syncFromViewport = () => {
       if (
@@ -122,7 +123,7 @@ export function IntroOne() {
       cardNodes.forEach((node, index) => {
         const local = clamp01((cardsProgress - index * 0.17) / 0.52)
 
-        setRevealState(node, local, (1 - local) * 20)
+        setRevealState(node, local, 0)
       })
     }
 
@@ -190,8 +191,8 @@ export function IntroOne() {
                 cardRefs.current[index] = node
               }}
             >
-              <p className={s.cardTitle}>{card.title}</p>
-              <p className={s.cardSubtitle}>{card.subtitle}</p>
+              <ScrubTextReveal as="p" className={s.cardTitle} text={card.title} />
+              <ScrubTextReveal as="p" className={s.cardSubtitle} text={card.subtitle} />
             </article>
           ))}
         </div>

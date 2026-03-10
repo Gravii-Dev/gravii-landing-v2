@@ -1,4 +1,5 @@
 import { MaskReveal } from '@/components/effects/mask-reveal'
+import { ScrubTextReveal } from '@/components/effects/scrub-text-reveal'
 import s from './marquee-copy.module.css'
 
 const LABELS = [
@@ -43,7 +44,7 @@ export function MarqueeCopy() {
       id="marquee-copy"
       className={s.section}
     >
-      <MaskReveal className={s.revealRow}>
+      <MaskReveal className={s.revealRow} start="top 62%">
         <div className={s.marqueeViewport}>
           <div className={`${s.track} ${s.trackForward}`}>
             {forward.map((item) => (
@@ -56,15 +57,25 @@ export function MarqueeCopy() {
       </MaskReveal>
 
       <div className={s.center}>
-        <MaskReveal className={s.titleReveal} innerClassName={s.titleInner} delay={0.04}>
-          <h2 className={s.title}>Dressed in data. Find your fit.</h2>
+        <MaskReveal
+          className={s.titleReveal}
+          innerClassName={s.titleInner}
+          delay={0.04}
+          start="top 62%"
+        >
+          <ScrubTextReveal as="h2" className={s.title} text="Dressed in data. Find your fit." />
         </MaskReveal>
-        <MaskReveal className={s.subtitleReveal} innerClassName={s.subtitleInner} delay={0.1}>
+        <MaskReveal
+          className={s.subtitleReveal}
+          innerClassName={s.subtitleInner}
+          delay={0.1}
+          start="top 62%"
+        >
           <p className={s.subtitle}>20 behavioral types</p>
         </MaskReveal>
       </div>
 
-      <MaskReveal className={s.revealRow} delay={0.12}>
+      <MaskReveal className={s.revealRow} delay={0.12} start="top 62%">
         <div className={s.marqueeViewport}>
           <div className={`${s.track} ${s.trackReverse}`}>
             {reverse.map((item) => (

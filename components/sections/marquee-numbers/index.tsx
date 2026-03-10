@@ -14,7 +14,7 @@ export function MarqueeNumbers() {
       id="marquee-numbers"
       className={s.section}
     >
-      <MaskReveal className={s.revealViewport}>
+      <MaskReveal className={s.revealViewport} start="top 62%">
         <div className={s.viewport}>
           <div className={s.track}>
             {CLUSTERS.map((clusterId) => (

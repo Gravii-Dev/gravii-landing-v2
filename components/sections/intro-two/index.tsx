@@ -25,37 +25,28 @@ const INTRO_TWO_CHARS = (() => {
   })
 })()
 
-function clamp01(value: number) {
-  return Math.max(0, Math.min(1, value))
-}
-
 function setCharacterState(node: HTMLElement, opacity: number, yPercent: number) {
   node.style.opacity = `${opacity}`
   node.style.transform = `translate3d(0, ${yPercent}%, 0)`
 }
-
-const ALERT_CARD_VISIBLE_CLASS = s.alertCardVisible ?? 'alertCardVisible'
 
 export function IntroTwo() {
   const sectionRef = useRef<HTMLElement>(null)
   const textLineRef = useRef<HTMLParagraphElement>(null)
   const charRefs = useRef<HTMLSpanElement[]>([])
   const tailRef = useRef<HTMLSpanElement>(null)
-  const alertCardRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const sectionNode = sectionRef.current
     const textLineNode = textLineRef.current
     const tailNode = tailRef.current
-    const alertCardNode = alertCardRef.current
 
     if (
       !(
         sectionNode &&
         textLineNode &&
         charRefs.current.length > 0 &&
-        tailNode &&
-        alertCardNode
+        tailNode
       )
     ) {
       return
@@ -70,7 +61,6 @@ export function IntroTwo() {
     let isActive = false
     let visibleCount = 0
     let phase: 'typing' | 'deleting' = 'typing'
-    let frameId = 0
 
     const applyVisibleCount = (count: number) => {
       visibleCount = count
@@ -139,41 +129,6 @@ export function IntroTwo() {
 
     resetLoop()
 
-    const syncCardFromViewport = () => {
-      frameId = 0
-
-      if (!(sectionNode && textLineNode)) {
-        return
-      }
-
-      const textBounds = textLineNode.getBoundingClientRect()
-      const viewportHeight = window.innerHeight
-      const activationLine = viewportHeight * 1.03
-
-      if (textBounds.bottom > activationLine) {
-        alertCardNode.classList.remove(ALERT_CARD_VISIBLE_CLASS)
-        return
-      }
-
-      const revealDistance = viewportHeight * 0.5
-      const progress = clamp01(
-        (activationLine - textBounds.bottom) / Math.max(1, revealDistance)
-      )
-      const typingProgress = clamp01(progress * 1.08)
-      const resolvedProgress = progress >= 0.8 ? 1 : typingProgress
-      const shouldShowCard = resolvedProgress >= 0.94
-
-      alertCardNode.classList.toggle(ALERT_CARD_VISIBLE_CLASS, shouldShowCard)
-    }
-
-    const scheduleCardSync = () => {
-      if (frameId !== 0) {
-        return
-      }
-
-      frameId = window.requestAnimationFrame(syncCardFromViewport)
-    }
-
     const observer = new IntersectionObserver(
       ([entry]) => {
         const nextIsActive = entry?.isIntersecting ?? false
@@ -187,7 +142,6 @@ export function IntroTwo() {
         if (!isActive) {
           clearAnimation()
           resetLoop()
-          alertCardNode.classList.remove(ALERT_CARD_VISIBLE_CLASS)
           return
         }
 
@@ -199,16 +153,10 @@ export function IntroTwo() {
     )
 
     observer.observe(sectionNode)
-    scheduleCardSync()
-    window.addEventListener('scroll', scheduleCardSync, { passive: true })
-    window.addEventListener('resize', scheduleCardSync)
 
     return () => {
       isDisposed = true
       clearAnimation()
-      window.cancelAnimationFrame(frameId)
-      window.removeEventListener('scroll', scheduleCardSync)
-      window.removeEventListener('resize', scheduleCardSync)
       observer.disconnect()
     }
   }, [])
@@ -244,7 +192,7 @@ export function IntroTwo() {
             <span className={s.blinkDot}>.</span>
           </span>
         </p>
-        <div ref={alertCardRef} className={s.alertCard}>
+        {/* <div ref={alertCardRef} className={s.alertCard}>
           <div className={s.alertNoise} />
           <div className={s.alertHeader}>
             <span className={s.alertTitle}>No profile found</span>
@@ -259,7 +207,7 @@ export function IntroTwo() {
             <span className={s.alertLabel}>Wallet</span>
             <span className={s.alertValue}>0x71C...9A21 — unlinked</span>
           </div>
-        </div>
+        </div> */}
       </div>
     </section>
   )

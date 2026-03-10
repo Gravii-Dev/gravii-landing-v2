@@ -5,6 +5,7 @@ import { headers } from 'next/headers'
 import { fetchWithTimeout } from '@/lib/utils/fetch'
 import { rateLimit, rateLimiters } from '@/lib/utils/rate-limit'
 import {
+  getWaitlistRateLimitIdentifier,
   isValidWaitlistEmail,
   normalizeWaitlistEmail,
 } from '@/lib/utils/waitlist'
@@ -84,7 +85,9 @@ export async function joinWaitlistAction(
   }
 
   const requestHeaders = await headers()
-  const identifier = `${getClientIdentifier(requestHeaders)}:${email}:waitlist`
+  const identifier = getWaitlistRateLimitIdentifier(
+    getClientIdentifier(requestHeaders)
+  )
   const rateLimitResult = rateLimit(identifier, rateLimiters.strict)
   if (!rateLimitResult.success) {
     return {

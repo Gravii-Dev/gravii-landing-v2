@@ -148,7 +148,7 @@ export function StickyHeader() {
           />
           <HeaderPill
             href="#team"
-            label="TEAM"
+            label="DOCS"
             className={`${s.pillLink} ${s.navLink}`}
           />
         </nav>

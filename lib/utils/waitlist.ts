@@ -8,3 +8,7 @@ export function normalizeWaitlistEmail(email: string) {
 export function isValidWaitlistEmail(email: string) {
   return WAITLIST_EMAIL_RE.test(normalizeWaitlistEmail(email))
 }
+
+export function getWaitlistRateLimitIdentifier(clientIdentifier: string) {
+  return `${clientIdentifier}:waitlist`
+}

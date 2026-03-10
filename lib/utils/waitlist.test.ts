@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import {
+  getWaitlistRateLimitIdentifier,
   isValidWaitlistEmail,
   normalizeWaitlistEmail,
 } from './waitlist'
@@ -21,5 +22,13 @@ describe('isValidWaitlistEmail', () => {
     expect(isValidWaitlistEmail('not-an-email')).toBe(false)
     expect(isValidWaitlistEmail('hello@gravii')).toBe(false)
     expect(isValidWaitlistEmail('')).toBe(false)
+  })
+})
+
+describe('getWaitlistRateLimitIdentifier', () => {
+  it('limits waitlist submissions per client identifier instead of per email', () => {
+    expect(getWaitlistRateLimitIdentifier('203.0.113.7')).toBe(
+      '203.0.113.7:waitlist'
+    )
   })
 })

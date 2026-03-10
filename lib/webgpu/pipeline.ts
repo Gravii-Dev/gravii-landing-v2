@@ -180,9 +180,19 @@ fn fs_main(input: VSOut) -> @location(0) vec4<f32> {
   let lambert = max(dot(normal, light_dir), 0.0);
   let dist_to_cursor = distance(input.ndc_xy, camera.cursor);
   let cursor_glow = smoothstep(0.95, 0.0, dist_to_cursor) * 0.26;
+  let view_dir = normalize(vec3<f32>(0.0, 0.0, 1.0));
+  let half_vec = normalize(light_dir + view_dir);
+  let specular = pow(max(dot(normal, half_vec), 0.0), 28.0);
+  let fresnel = pow(1.0 - max(dot(normal, view_dir), 0.0), 3.2);
 
   let albedo = textureSample(model_texture, model_sampler, input.uv).rgb;
-  let color = albedo * (0.95 + lambert * 1.4) + vec3<f32>(0.08 + cursor_glow, 0.08 + cursor_glow, 0.08 + cursor_glow);
+  let background_tint = vec3<f32>(236.0 / 255.0, 224.0 / 255.0, 203.0 / 255.0);
+  let tinted_albedo = mix(albedo, background_tint, 0.6);
+  let soft_lambert = 0.18 + lambert * 0.82;
+  let light = 0.7 + soft_lambert * 0.48;
+  let ambient = background_tint * 0.1;
+  let sheen = background_tint * (specular * 0.1 + fresnel * 0.04);
+  let color = tinted_albedo * light + ambient + sheen + vec3<f32>(cursor_glow * 0.15, cursor_glow * 0.15, cursor_glow * 0.15);
   return vec4<f32>(color, 1.0);
 }
 `

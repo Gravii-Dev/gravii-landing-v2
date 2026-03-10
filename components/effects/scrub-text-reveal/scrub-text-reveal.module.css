@@ -1,0 +1,27 @@
+.word {
+  display: inline-block;
+}
+
+.char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(16%);
+  will-change: opacity, transform;
+  transition:
+    opacity 160ms linear,
+    transform 220ms var(--ease-out-cubic);
+}
+
+.space {
+  display: inline-block;
+  width: 0.34em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .char {
+    opacity: 1;
+    transform: none;
+    will-change: auto;
+    transition: none;
+  }
+}

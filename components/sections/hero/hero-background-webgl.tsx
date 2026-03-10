@@ -172,10 +172,12 @@ async function loadHeroAssets() {
   }
 
   const material = new MeshStandardMaterial({
-    color: new Color(texture ? '#f4f1ea' : '#b8bfca'),
+    color: new Color(texture ? '#ece0cb' : '#d8cab2'),
     map: texture,
-    roughness: 0.95,
-    metalness: 0.02,
+    roughness: 0.8,
+    metalness: 0.08,
+    emissive: new Color('#ece0cb'),
+    emissiveIntensity: 0.045,
   })
 
   return { geometry, material }

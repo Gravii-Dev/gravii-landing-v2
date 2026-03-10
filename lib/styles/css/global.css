@@ -1,6 +1,10 @@
 /* GLOBAL CSS FILE - Contains global styles that shouldn't be reset */
 
 html {
+  --global-font-family: var(--font-mystic-dream), sans-serif;
+  --global-font-weight: 500;
+  --global-letter-spacing: 0em;
+  --global-font-style: normal;
   --scrollbar-gutter: 0px;
   scrollbar-gutter: stable; /* This is needed to prevent the scrollbar from jumping */
 
@@ -25,8 +29,36 @@ body {
   color: var(--color-secondary);
   display: flex;
   flex-direction: column;
+  font-family: var(--global-font-family);
+  font-weight: var(--global-font-weight);
+  font-style: var(--global-font-style);
+  letter-spacing: var(--global-letter-spacing);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+body [class],
+body b,
+body button,
+body em,
+body i,
+body input,
+body option,
+body select,
+body strong,
+body textarea {
+  font-family: inherit;
+  font-weight: inherit;
+  font-style: inherit;
+  letter-spacing: inherit;
+}
+
+body button,
+body input,
+body option,
+body select,
+body textarea {
+  font: inherit;
 }
 
 /* Selection styling */
