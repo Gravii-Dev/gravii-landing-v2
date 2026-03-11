@@ -206,7 +206,7 @@
   padding-left: clamp(0.8rem, 4.8vw, 4.5rem);
 }
 
-.subtitle {
+.overlay .subtitle {
   align-self: center;
   width: 100%;
   margin: 0;
